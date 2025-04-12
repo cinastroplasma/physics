@@ -1,0 +1,29 @@
+image: node:18
+
+stages:
+  - build
+  - deploy
+
+cache:
+  paths:
+    - node_modules/
+
+build-pages:
+  stage: build
+  script:
+    - npm install
+    - npm run build
+    - mv out public  # For Next.js static export
+  artifacts:
+    paths:
+      - public
+
+pages:
+  stage: deploy
+  script:
+    - echo "Deployed to GitLab Pages"
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
