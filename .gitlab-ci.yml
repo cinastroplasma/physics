@@ -3,30 +3,18 @@ stages:
   - build
   - deploy
 
-cache:
-  key:
-    files:
-      - package-lock.json
-    prefix: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - node_modules/
-
 build-pages:
   tags: [cpu]
   stage: build
   before_script:
-    - npm config set update-notifier false
+    # Clean npm cache and temporary files
     - npm cache clean --force
+    - rm -rf node_modules/ package-lock.json .npm/
   script:
     - echo "Installing dependencies..."
-    # Use npm version that ships with Node.js 18
-    - if [ -f package-lock.json ]; then
-        NODE_ENV=production npm ci --legacy-peer-deps;
-      else
-        echo "⚠️ package-lock.json not found. Using npm install";
-        NODE_ENV=production npm install --legacy-peer-deps --no-audit;
-      fi
-
+    # Force clean installation with legacy peer deps
+    - NODE_ENV=production npm install --legacy-peer-deps --force --no-audit --prefer-offline
+    
     - echo "Building project..."
     - npm run build
 
