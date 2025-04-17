@@ -13,6 +13,7 @@ build-pages:
   image: ubuntu:latest
   stage: build
   script:
+    - apt install nodejs npm
     - npm install
     - npm run build
     - mv out public  # For Next.js static export
