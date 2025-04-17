@@ -15,7 +15,8 @@ build-pages:
   script:
     - echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/sandbox-disable
     - apt-get update
-    - apt-get install -qq -y nodejs npm 
+    - apt-get install -qq -y nodejs 
+    - apt-get install -qq -y npm 
     - npm install
     - npm run build
     - mv out public  # For Next.js static export
