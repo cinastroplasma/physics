@@ -17,7 +17,6 @@ variables:
   PNPM_VERSION: "8.15.6"
 
 before_script:
-  # Install compatible pnpm version first
   - npm install -g pnpm@${PNPM_VERSION}
   - pnpm config set store-dir .pnpm-store
 
@@ -26,14 +25,22 @@ build-pages:
   stage: build
   script:
     - echo "Installing dependencies..."
-    - pnpm install --frozen-lockfile
+    # Check for lockfile existence
+    - if [ -f pnpm-lock.yaml ]; then
+        pnpm install --frozen-lockfile;
+      else
+        echo "⚠️ pnpm-lock.yaml not found. Generating fresh install";
+        pnpm install;
+      fi
 
     - echo "Building project..."
     - pnpm build
 
-    # For Next.js static export
-    - pnpm export -o public
-
+    # Handle Next.js output based on config
+    - if [ -d out ]; then mv out public;
+      elif [ -d .next/static ]; then mkdir -p public/_next && cp -r .next/static public/_next/static;
+      else echo "❌ No build output found"; exit 1;
+      fi
   artifacts:
     paths:
       - public
