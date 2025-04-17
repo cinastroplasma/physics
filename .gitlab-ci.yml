@@ -3,22 +3,32 @@ stages:
   - build
   - deploy
 
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - .next/cache/
+
 build-pages:
   tags: [cpu]
   stage: build
   before_script:
-    # Clean npm cache and temporary files
     - npm cache clean --force
-    - rm -rf node_modules/ package-lock.json .npm/
+    - npm install -g npm@latest
   script:
     - echo "Installing dependencies..."
-    # Force clean installation with legacy peer deps
-    - NODE_ENV=production npm install --legacy-peer-deps --force --no-audit --prefer-offline
-    
+    - npm install --legacy-peer-deps --no-audit --prefer-offline
+
+    # Install required peer dependencies
+    - npm install tailwindcss postcss autoprefixer --save-exact
+
     - echo "Building project..."
     - npm run build
 
-    - if [ -d out ]; then mv out public; else echo "❌ Build output folder 'out' not found!"; exit 1; fi
+    # Next.js typically outputs to .next/static - adjust as needed
+    - mkdir -p public
+    - cp -r .next/static public/_next/static || echo "No static files found"
+    - cp -r public/* ./public/ || echo "No public assets found"
   artifacts:
     paths:
       - public
@@ -27,7 +37,7 @@ build-pages:
 pages:
   stage: deploy
   script:
-    - echo "Deployed to GitLab Pages"
+    - echo "Deploying to GitLab Pages..."
   artifacts:
     paths:
       - public
