@@ -9,6 +9,8 @@ cache:
     - node_modules/
 
 build-pages:
+  tags: [cpu]
+  image: ubuntu:latest
   stage: build
   script:
     - npm install
