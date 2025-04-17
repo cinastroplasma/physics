@@ -4,31 +4,36 @@ stages:
   - deploy
 
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  key:
+    files:
+      - pnpm-lock.yaml
+    prefix: ${CI_COMMIT_REF_SLUG}
   paths:
     - node_modules/
+    - .pnpm-store/
     - .next/cache/
+
+variables:
+  PNPM_VERSION: "8.15.6"
+
+before_script:
+  # Install compatible pnpm version first
+  - npm install -g pnpm@${PNPM_VERSION}
+  - pnpm config set store-dir .pnpm-store
 
 build-pages:
   tags: [cpu]
   stage: build
-  before_script:
-    - npm cache clean --force
-    - npm install -g npm@latest
   script:
     - echo "Installing dependencies..."
-    - npm install --legacy-peer-deps --no-audit --prefer-offline
-
-    # Install required peer dependencies
-    - npm install tailwindcss postcss autoprefixer --save-exact
+    - pnpm install --frozen-lockfile
 
     - echo "Building project..."
-    - npm run build
+    - pnpm build
 
-    # Next.js typically outputs to .next/static - adjust as needed
-    - mkdir -p public
-    - cp -r .next/static public/_next/static || echo "No static files found"
-    - cp -r public/* ./public/ || echo "No public assets found"
+    # For Next.js static export
+    - pnpm export -o public
+
   artifacts:
     paths:
       - public
@@ -37,7 +42,7 @@ build-pages:
 pages:
   stage: deploy
   script:
-    - echo "Deploying to GitLab Pages..."
+    - echo "Deployed to GitLab Pages"
   artifacts:
     paths:
       - public
