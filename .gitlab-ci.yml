@@ -14,10 +14,20 @@ build-pages:
   stage: build
   script:
     - echo "Installing dependencies..."
-    - NODE_ENV=production npm ci
+
+    # Check if package-lock.json exists
+    - if [ -f package-lock.json ]; then
+        NODE_ENV=production npm ci;
+      else
+        echo "⚠️ package-lock.json not found. Falling back to npm install";
+        NODE_ENV=production npm install;
+      fi
+
     - echo "Building project..."
     - npm run build
-    - mv out public  # For Next.js static export (make sure you're using `next export`)
+
+    # Ensure build folder exists before moving
+    - if [ -d out ]; then mv out public; else echo "❌ Build output folder 'out' not found!"; exit 1; fi
   artifacts:
     paths:
       - public
