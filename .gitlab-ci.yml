@@ -5,24 +5,23 @@ stages:
   - deploy
 
 cache:
+  key: ${CI_COMMIT_REF_SLUG}
   paths:
     - node_modules/
 
 build-pages:
   tags: [cpu]
-  image: ubuntu:latest
   stage: build
   script:
-    - echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/sandbox-disable
-    - apt-get update
-    - apt-get install -qq -y nodejs 
-    - apt-get install -qq -y npm 
-    - npm install
+    - echo "Installing dependencies..."
+    - NODE_ENV=production npm ci
+    - echo "Building project..."
     - npm run build
-    - mv out public  # For Next.js static export
+    - mv out public  # For Next.js static export (make sure you're using `next export`)
   artifacts:
     paths:
       - public
+    expire_in: 1 week
 
 pages:
   stage: deploy
